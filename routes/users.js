@@ -26,6 +26,7 @@ router.post('/', (req, res) => {
             req.body.password = hash
             User.create(req.body, (err, created) => {
                 if (err) return res.json({ err })
+                //here he is hiding the password for the respone requset of the DB
                 created.password = undefined
                 res.json({ created })
             })
@@ -35,12 +36,12 @@ router.post('/', (req, res) => {
 
 })
 
-router.post("/:id/uploadImage" , passport.authenticate("jwt" , {session:false}) , upload.single("photo"), (req,res)=>{
-    User.findByIdAndUpdate(req.user._id , {$set : {photo : req.file.filename }} , (err, updated)=>{
+router.post("/:id/uploadImage", passport.authenticate("jwt", { session: false }), upload.single("photo"), (req, res) => {
+    User.findByIdAndUpdate(req.user._id, { $set: { photo: req.file.filename } }, (err, updated) => {
 
-        res.json({success : true})
+        res.json({ success: true })
     })
-} )
+})
 
 //add folowers
 router.get('/:id/follow', passport.authenticate("jwt", { session: false }), function (req, res) {
@@ -48,37 +49,37 @@ router.get('/:id/follow', passport.authenticate("jwt", { session: false }), func
         follower: req.user._id,
         followed: req.params.id
     }
-    Follow.findOne(data, (err,found)=>{
-        if(!found){
+    Follow.findOne(data, (err, found) => {
+        if (!found) {
 
-            Follow.create(data, function(err, user) {
-                if (err) res.json({success: false, err})
-                else res.json({success:true})
-                
+            Follow.create(data, function (err, user) {
+                if (err) res.json({ success: false, err })
+                else res.json({ success: true })
+
             })
-        }else {
-            Follow.remove(data ,function(err, user) {
-                if (err) res.json({success: false, err})
-                else res.json({success:true})
-                
+        } else {
+            Follow.remove(data, function (err, user) {
+                if (err) res.json({ success: false, err })
+                else res.json({ success: true })
+
             })
         }
     })
 })
 
 //find folowers
-router.get('/:id/followers', passport.authenticate("jwt" , {session:false}), function(req, res) {
-    Follow.find({followed: ObjectId(req.params.id)}).populate("follower").exec(function(err, data) {
-        if (err) res.json({success: false, err})
-        else res.json( data)
+router.get('/:id/followers', passport.authenticate("jwt", { session: false }), function (req, res) {
+    Follow.find({ followed: ObjectId(req.params.id) }).populate("follower").exec(function (err, data) {
+        if (err) res.json({ success: false, err })
+        else res.json(data)
     })
 })
 
 //find following
-router.get('/:id/followings', passport.authenticate("jwt" , {session:false}), function(req, res) {
-    Follow.find({follower: ObjectId(req.params.id)}).populate("followed").exec(function(err, data) {
-        if (err) res.json({success: false, err})
-        else res.json( data)
+router.get('/:id/followings', passport.authenticate("jwt", { session: false }), function (req, res) {
+    Follow.find({ follower: ObjectId(req.params.id) }).populate("followed").exec(function (err, data) {
+        if (err) res.json({ success: false, err })
+        else res.json(data)
     })
 })
 
@@ -133,32 +134,32 @@ router.post('/authenticate', (req, res, next) => {
 
 router.get('/:id', function (req, res) {
     //fitch user fron Dbrgh
-   User.findById(req.params.id, function(err, user) {
-       if(err){
-         res.json({err})
-       }else{
-          res.json({user})
-       }
+    User.findById(req.params.id, function (err, user) {
+        if (err) {
+            res.json({ err })
+        } else {
+            res.json({ user })
+        }
 
-   })
-    
+    })
+
 })
 
-router.get('/:username/items', passport.authenticate("jwt" , {session:false}) , function(req, res){
-    if(req.user.username == req.params.username){
-        Item.find({user : req.user._id}).sort({_id : -1}).exec((err,products)=>{
-            if (err) res.json({err})
-            else res.json({products,user : req.user})
+router.get('/:username/items', passport.authenticate("jwt", { session: false }), function (req, res) {
+    if (req.user.username == req.params.username) {
+        Item.find({ user: req.user._id }).sort({ _id: -1 }).exec((err, products) => {
+            if (err) res.json({ err })
+            else res.json({ products, user: req.user })
         })
 
-    }else{
-        User.findOne({username : req.params.username}).lean().exec((err,user)=>{
-            Follow.exists({followed : user._id, follower : req.user._id}, (err,exist)=>{
+    } else {
+        User.findOne({ username: req.params.username }).lean().exec((err, user) => {
+            Follow.exists({ followed: user._id, follower: req.user._id }, (err, exist) => {
                 user.followed = exist
                 user.password = undefined
-                Item.find({user : user._id}).sort({_id : -1}).exec((err,products)=>{
-                    if (err) res.json({err})
-                    else res.json({products,user})
+                Item.find({ user: user._id }).sort({ _id: -1 }).exec((err, products) => {
+                    if (err) res.json({ err })
+                    else res.json({ products, user })
                 })
             })
         })

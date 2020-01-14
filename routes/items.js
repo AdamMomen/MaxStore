@@ -8,11 +8,11 @@ const passport = require("passport")
 const upload = require("../upload.js")
 
 // this is the get route for the API/items for getting the items.
-router.get("/" , (req,res)=>{
-  Item.find({}).sort({_id : -1}).populate(["user"]).exec((err, items)=>{
-    if (err) res.json({err})
-    else res.json(items)
-  })
+router.get("/", (req, res) => {
+    Item.find({}).sort({ _id: -1 }).populate(["user"]).exec((err, items) => {
+        if (err) res.json({ err })
+        else res.json(items)
+    })
 })
 
 // this is the get route for the API/items/id for updating an item using the id.
@@ -28,32 +28,32 @@ router.patch('/:id', function (req, res) {
 })
 
 // this is the get route for the API/items for postting the items.
-router.post('/', passport.authenticate("jwt" , {session:false}) , upload.single("photo"),  function (req, res) {
+router.post('/', passport.authenticate("jwt", { session: false }), upload.single("photo"), function (req, res) {
     req.body.photo = req.file.filename
     req.body.user = req.user._id
     req.body.available = Boolean(req.body.available)
 
-  Item.create(req.body, function (err, item) {
-      if (err) res.json({err})
-      else res.json({item})
-      
-  });
+    Item.create(req.body, function (err, item) {
+        if (err) res.json({ err })
+        else res.json({ item })
+
+    });
 })
 
 // this is the get route for the API/items/home for getting the items in the home page.
-router.get("/home" , passport.authenticate("jwt" , {session:false}) , (req,res)=>{
-Follow.find({follower : req.user._id}, (err, data)=>{
-  data = data.map(one =>{
-    return { user : one.followed}
+router.get("/home", passport.authenticate("jwt", { session: false }), (req, res) => {
+    Follow.find({ follower: req.user._id }, (err, data) => {
+        data = data.map(one => {
+            return { user: one.followed }
+        })
+        data.push({ user: req.user._id })
+        Item.find({ $or: data }).populate(["user", "category"]).sort({ _id: -1 }).exec((err, items) => {
+            if (err) throw err
+            else res.json(items)
+        })
+    })
 })
-  data.push({user : req.user._id})
-  Item.find({$or : data}).populate(["user" , "category"]).sort({_id:-1}).exec((err, items)=>{
-    if (err) throw err
-    else res.json(items)
-  })
-})
-})
-
+//@Adam we need to work here on this route 
 // this is the get route for the API/items/id/reviews for postting the item's reviews.
 router.post('/:id/reviews', function (req, res) {
     let object = { item: req.params.id, user: req.user._id, content: req.body.content };
@@ -115,7 +115,8 @@ router.patch('/reviews/:id/toggle', function (req, res) {
         }
     });
 })
-
+// not fully understanding 
+// is it's disabling the user 
 // this is the get route for the API/items/rates/id/toggle for updating rates status.
 router.patch('/rates/:id/toggle', function (req, res) {
 
@@ -177,17 +178,17 @@ router.post('/:id', (req, res) => {
 
 
     }
-    
+
     Item.create(data, (err, created) => {
-        if (err) return res.json({err})
-        res.json({created})
+        if (err) return res.json({ err })
+        res.json({ created })
     })
 })
 
 // this is the get route for the API/items/id for getting the item by its id.
-router.get("/:id" , (req,res)=>{
-    Item.findById(req.params.id).populate("user").exec((err, item)=>{
-      if (err) res.json({err})
-      else res.json(item)
+router.get("/:id", (req, res) => {
+    Item.findById(req.params.id).populate("user").exec((err, item) => {
+        if (err) res.json({ err })
+        else res.json(item)
     })
-  })
+})
